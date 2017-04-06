@@ -21,6 +21,7 @@ void ledsetup(){
   pinMode(greenLed, OUTPUT);
   pinMode(blueLed, OUTPUT);
   pinMode(relay, OUTPUT);
+  pinMode(openDoor, INPUT);
   blueSolid();
 }
 

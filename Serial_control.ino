@@ -12,6 +12,7 @@ void printMenu() {
   Serial.println();
   Serial.println(F("6) Change Master Tag//not finished yet"));
   Serial.println(F("X) Delete All Tags /not implemented"));
+  Serial.println(F("O) Open the door"));
   Serial.println();
 }
 
@@ -57,6 +58,13 @@ void get_Serial(){
         Serial.println(F("Scan a PICC to REMOVE"));
         Serial.println(F("Enter 'E' to Exit"));
         Serial.println(F("-----------------------------"));
+      break;
+      case'O':
+        lcd.setCursor(0, 1);
+        lcd.print("Access Granted");
+        Serial.println("Access Granted");
+        granted(3000);
+        cooldown();
       break;
     }
   }

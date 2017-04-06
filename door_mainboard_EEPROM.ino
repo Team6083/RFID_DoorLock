@@ -3,15 +3,28 @@
 #include <Wire.h>
 #include "pitch.h"
 #include <EEPROM.h>
+#include <stdio.h>
+#include <DS1302.h>
 
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // 設定 LCD I2C 位址
+
+
+const int kCePin   = 31;  //RST
+const int kIoPin   = 33;  //DAT
+const int kSclkPin = 35;  //CLK
+long interval = 1000;
+long previousMillis = 0;
+
+
+DS1302 rtc(kCePin, kIoPin, kSclkPin);
 
 const int chipSelect = 53;
 
 const int keynum = 10;
 String keys[keynum];
-
 String master_keys[] = {"10:7F:C6:48"};
+
+#define openDoor 23
 
 boolean successRead;
 String readCard;
@@ -31,6 +44,15 @@ void setup() {
   ledsetup();
   Wire.begin(8);
   Wire.onReceive(receiveEvent);
+
+  Serial.println("DS1302 Read Test");
+  Serial.println("-------------------");
+  
+  rtc.writeProtect(false);// 是否防止寫入 (日期時間設定成功後即可改成true)
+  rtc.halt(false);// 是否停止計時
+  
+  //RTC Model started
+  
   lcd.begin(16, 2);
   // 閃爍三次
   for(int i = 0; i < 3; i++) {
@@ -54,10 +76,33 @@ void setup() {
   Serial.print("Storaged card count:");
   Serial.println( EEPROM.read(0));
   printMenu();
+
+  Time t = rtc.time();
+  char buf[50];
+  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+          t.yr, t.mon, t.date,
+          t.hr, t.min, t.sec);
+  Serial.println(buf); 
+  Time t1(2017, 4, 05, 20, 04, 00, Time::kWednesday); //年 月 日 時 分 秒 星期幾 (日期時間設定成功後即可註解掉)
+  //rtc.time(t1);//設定日期時間 (日期時間設定成功後即可註解掉)
+  printTime();
 }
 
 void loop() {
+  unsigned long currentMillis = millis();
+  if(currentMillis - previousMillis > interval&&!successRead) {
+    previousMillis = currentMillis;
+    printTime();
+  }
   get_Serial();
+  if(digitalRead(openDoor)){
+    lcd_clearLine(0);
+    lcd.setCursor(0, 0);
+    lcd.print("  INSIDE OPEN  "):
+    
+    granted(3000);
+    cooldown();
+  }
   boolean finishChecking = false;
   while (!successRead)return;   //the program will not go further while you not get a successful read 
     if(masterMode){
@@ -78,18 +123,20 @@ void loop() {
     } 
     for(int i=0;master_keys[i]!=EOF&&!finishChecking;i++){
       if (readCard.indexOf(master_keys[i]) >= 0){
-        lcd.setCursor(0, 1);
-        lcd.print("Access Granted");
-        Serial.println("Access Granted");
+        lcd_clearLine(0);
+        lcd.setCursor(0, 0);
+        lcd.print("Access Accepted");
+        Serial.println("Access Accepted");
         granted(3000);
         finishChecking = true;
       }
     }
   if(!finishChecking){
     if(findID(readCard)){
-      lcd.setCursor(0, 1);
-      lcd.print("Access Granted");
-      Serial.println("Access Granted");
+      lcd_clearLine(0);
+      lcd.setCursor(0, 0);
+      lcd.print("Access Accepted");
+      Serial.println("Access Accepted");
       granted(3000);
       finishChecking = true;
     }
@@ -115,6 +162,7 @@ void cooldown(){
   lcd.print("Scan ID Card:");
   successRead = false;
   normalModeOn();
+  printTime();
 }
 
 void readUIDCard(){
