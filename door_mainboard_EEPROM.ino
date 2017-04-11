@@ -98,7 +98,7 @@ void loop() {
   if(digitalRead(openDoor)){
     lcd_clearLine(0);
     lcd.setCursor(0, 0);
-    lcd.print("  INSIDE OPEN  "):
+    lcd.print("  INSIDE OPEN  ");
     
     granted(3000);
     cooldown();
@@ -141,7 +141,8 @@ void loop() {
       finishChecking = true;
     }
     else{
-      lcd.setCursor(0, 1);
+      lcd_clearLine(0);
+      lcd.setCursor(0, 0);
       lcd.print("Access Denied");
       Serial.println("Access Denied");
       denied();
