@@ -10,6 +10,8 @@ void printMenu() {
   Serial.println(F("3) Remove a PICC"));
   Serial.println(F("4) "));
   Serial.println();
+  Serial.println(F("C) Turn on the backlight"));
+  Serial.println(F("c) Turn off the backlight"));
   Serial.println(F("6) Change Master Tag//not finished yet"));
   Serial.println(F("X) Delete All Tags /not implemented"));
   Serial.println(F("O) Open the door"));
@@ -38,6 +40,14 @@ void get_Serial(){
         delay(1000);
         printMenu();
       break;
+
+      case 'C':
+        lcd.backlight();
+      break;
+
+      case 'c':
+        lcd.noBacklight();
+      break;
       
       case 'X':
         clearAllID();
@@ -60,9 +70,9 @@ void get_Serial(){
         Serial.println(F("-----------------------------"));
       break;
       case'O':
-        lcd.setCursor(0, 1);
-        lcd.print("Access Granted");
-        Serial.println("Access Granted");
+        lcd_clearLine(0);
+        lcd.setCursor(0, 0);
+        lcd.print("  INSIDE OPEN  ");
         granted(3000);
         cooldown();
       break;

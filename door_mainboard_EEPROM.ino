@@ -15,6 +15,7 @@ const int kSclkPin = 35;  //CLK
 long interval = 1000;
 long previousMillis = 0;
 
+boolean b2_init = false;
 
 DS1302 rtc(kCePin, kIoPin, kSclkPin);
 
@@ -23,6 +24,7 @@ const int chipSelect = 53;
 const int keynum = 10;
 String keys[keynum];
 String master_keys[] = {"10:7F:C6:48"};
+String captain_keys[] = {"A6:BA:C3:A5"};
 
 #define openDoor 23
 
@@ -83,7 +85,7 @@ void setup() {
           t.yr, t.mon, t.date,
           t.hr, t.min, t.sec);
   Serial.println(buf); 
-  Time t1(2017, 4, 05, 20, 04, 00, Time::kWednesday); //年 月 日 時 分 秒 星期幾 (日期時間設定成功後即可註解掉)
+  Time t1(2017, 4, 15, 15, 25, 00, Time::kWednesday); //年 月 日 時 分 秒 星期幾 (日期時間設定成功後即可註解掉)
   //rtc.time(t1);//設定日期時間 (日期時間設定成功後即可註解掉)
   printTime();
 }
@@ -127,6 +129,12 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.print("Access Accepted");
         Serial.println("Access Accepted");
+        delay(500);
+        lcd_clearLine(0);
+        lcd.setCursor(0, 0);
+        lcd.print("Welcome Captain");
+        music();
+        delay(1000);
         granted(3000);
         finishChecking = true;
       }
@@ -177,6 +185,11 @@ void receiveEvent(int howMany){
   readCard = "";
   while(Wire.available()){
     readCard += (char)Wire.read();
+  }
+
+  if(readCard == "init done"){
+    b2_init = true;
+    return;
   }
   delay(500);
   successRead = true;

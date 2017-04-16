@@ -27,6 +27,10 @@ void lcd_granted(){
 
 void printTime(){
   Time t = rtc.time();
+  if(t.yr == 2011){
+    printTime();
+    return;
+  }
   lcd.setCursor(0, 1);
   lcd.print(t.yr);
   lcd.print("-");
@@ -36,12 +40,32 @@ void printTime(){
   lcd.print(" ");
   lcd.print(t.hr);
   lcd.print(":");
-  lcd.print(t.min);
+  if(t.min<10){
+    lcd.print("0");
+    lcd.print(t.min);
+  }
+  else{
+    lcd.print(t.min);
+  }
   /*if(t.hr>12){
     lcd.print("PM");
   }
   else{
     lcd.print("AM");
   }*/
+}
+
+void backlight_control(){
+  Time t = rtc.time();
+  if(t.yr == 2011){
+    return;
+  }
+
+  if(t.hr>=21){
+    lcd.backlight();
+  }
+  else if(t.hr>8&&t.hr<21){
+    lcd.noBacklight();
+  }
 }
 
