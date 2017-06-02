@@ -1,3 +1,5 @@
+int backightmode = 0; //0 for auto; 1 for manual
+
 void init_lcd(){
   lcd.begin(16, 2);
   // lcd blink 3 times
@@ -26,28 +28,28 @@ void lcd_granted(){
 }
 
 void printTime(){
-  Time t = rtc.time();
-  if(t.yr == 2011){
+  Time t = rtc.getTime();
+  if(t.year == 2011){
     printTime();
     return;
   }
   lcd.setCursor(0, 1);
-  lcd.print(t.yr);
+  lcd.print(t.year);
   lcd.print("-");
   lcd.print(t.mon);
   lcd.print("-");
   lcd.print(t.date);
   lcd.print(" ");
-  lcd.print(t.hr);
+  if(t.hour<10){
+    lcd.print("0");
+  }
+  lcd.print(t.hour);
   lcd.print(":");
   if(t.min<10){
     lcd.print("0");
-    lcd.print(t.min);
   }
-  else{
-    lcd.print(t.min);
-  }
-  /*if(t.hr>12){
+  lcd.print(t.min);
+  /*if(t.hour>12){
     lcd.print("PM");
   }
   else{
@@ -56,16 +58,19 @@ void printTime(){
 }
 
 void backlight_control(){
-  Time t = rtc.time();
-  if(t.yr == 2011){
+  if(backightmode==1){
+    return;
+  }
+  Time t = rtc.getTime();
+  if(t.year == 2011){
     return;
   }
 
-  if(t.hr>=21){
-    lcd.backlight();
-  }
-  else if(t.hr>8&&t.hr<21){
+  if(t.hour>=21){
     lcd.noBacklight();
+  }
+  else if(t.hour>8&&t.hour<21){
+    lcd.backlight();
   }
 }
 

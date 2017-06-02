@@ -14,6 +14,8 @@ const int kIoPin   = 33;  //DAT
 const int kSclkPin = 35;  //CLK
 long interval = 1000;
 long previousMillis = 0;
+long pingTimeout = 120000;
+long previousMillis_pingTimeout = 0;
 
 boolean b2_init = false;
 
@@ -24,7 +26,7 @@ const int chipSelect = 53;
 const int keynum = 10;
 String keys[keynum];
 String master_keys[] = {"10:7F:C6:48"};
-String captain_keys[] = {"A6:BA:C3:A5"};
+String captain_keys[] = {"E8:39:F8:18","10:7F:C6:48"};
 
 #define openDoor 23
 
@@ -41,20 +43,37 @@ char action;
 
 void setup() {
   Serial.begin(9600);
+  Serial1.begin(9600);
   Serial.println("Board1 initializing in i2c slave-8");
   successRead = false;
   ledsetup();
-  Wire.begin(8);
-  Wire.onReceive(receiveEvent);
+  Wire.begin();
+  Serial.println("I2C initialization done");
 
   Serial.println("DS1302 Read Test");
   Serial.println("-------------------");
+
+  // 設定時鐘為正常執行模式
+  rtc.halt(false);
   
-  rtc.writeProtect(false);// 是否防止寫入 (日期時間設定成功後即可改成true)
-  rtc.halt(false);// 是否停止計時
+  //取消寫入保護，設定日期時要這行
+  rtc.writeProtect(false);
+
+  // 以下是設定時間的方法，在電池用完之前，只要設定一次就行了
+  //rtc.setDOW(SUNDAY);        // 設定週幾，如FRIDAY
+  //rtc.setTime(13, 39, 0);     // 設定時間 時，分，秒 (24hr format)
+  //rtc.setDate(28, 5, 2017);   // 設定日期 日，月，年
+  
+  Time t = rtc.getTime();
+  char buf[50];
+  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+          t.year, t.mon, t.date,
+          t.hour, t.min, t.sec);
+  Serial.println(buf); 
   
   //RTC Model started
   
+  Serial.println("lcd initializing");
   lcd.begin(16, 2);
   // 閃爍三次
   for(int i = 0; i < 3; i++) {
@@ -75,18 +94,10 @@ void setup() {
   readCard = "";
   Serial.println("Board1 is ready");
   cooldown();
-  Serial.print("Storaged card count:");
+  Serial.print("Storage count:");
   Serial.println( EEPROM.read(0));
   printMenu();
-
-  Time t = rtc.time();
-  char buf[50];
-  snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
-          t.yr, t.mon, t.date,
-          t.hr, t.min, t.sec);
-  Serial.println(buf); 
-  Time t1(2017, 4, 15, 15, 25, 00, Time::kWednesday); //年 月 日 時 分 秒 星期幾 (日期時間設定成功後即可註解掉)
-  //rtc.time(t1);//設定日期時間 (日期時間設定成功後即可註解掉)
+  
   printTime();
 }
 
@@ -95,8 +106,10 @@ void loop() {
   if(currentMillis - previousMillis > interval&&!successRead) {
     previousMillis = currentMillis;
     printTime();
+    backlight_control();
   }
   get_Serial();
+  board_2_Serial();
   if(digitalRead(openDoor)){
     lcd_clearLine(0);
     lcd.setCursor(0, 0);
@@ -107,6 +120,14 @@ void loop() {
   }
   boolean finishChecking = false;
   while (!successRead)return;   //the program will not go further while you not get a successful read 
+  
+  if((readCard.c_str()[0]=='?'&&readCard.c_str()[1]=='/')||(readCard.c_str()[0]=="?"&&readCard.c_str()[1]=="/")){
+    Serial.print("[Board 2]");
+    readCard.remove(0,2);
+    Serial.println(readCard);
+    return;
+  }
+  
     if(masterMode){
       switch(action){
         
@@ -129,22 +150,35 @@ void loop() {
         lcd.setCursor(0, 0);
         lcd.print("Access Accepted");
         Serial.println("Access Accepted");
-        delay(500);
-        lcd_clearLine(0);
-        lcd.setCursor(0, 0);
-        lcd.print("Welcome Captain");
-        music();
-        delay(1000);
+        for(int i=0;captain_keys[i]!=EOF&&!finishChecking;i++){
+          if (readCard.indexOf(captain_keys[i]) >= 0){
+            lcd_clearLine(0);
+            lcd.setCursor(0, 0);
+            lcd.print("Welcome Captain");
+          }
+        }
         granted(3000);
         finishChecking = true;
       }
     }
   if(!finishChecking){
+    boolean captain=false;
     if(findID(readCard)){
-      lcd_clearLine(0);
-      lcd.setCursor(0, 0);
-      lcd.print("Access Accepted");
-      Serial.println("Access Accepted");
+      for(int i=0;captain_keys[i]!=EOF&&!finishChecking;i++){
+        if (readCard.indexOf(captain_keys[i]) >= 0){
+          lcd_clearLine(0);
+          lcd.setCursor(0, 0);
+          lcd.print("Welcome Captain");
+          //music();
+          captain = true;
+        }
+      }
+      if(!captain){
+        lcd_clearLine(0);
+        lcd.setCursor(0, 0);
+        lcd.print("Access Accepted");
+        Serial.println("Access Accepted");
+      }
       granted(3000);
       finishChecking = true;
     }
@@ -175,26 +209,10 @@ void cooldown(){
 }
 
 void readUIDCard(){
-   Serial.print(F("Scanned PICC's UID:     "));
+   Serial.print(F("Scanned PICC's UID:"));
    Serial.println(readCard);
 }
 
-/////////////////////////////////// Recive from I2C ///////////////////////////////////
-
-void receiveEvent(int howMany){
-  readCard = "";
-  while(Wire.available()){
-    readCard += (char)Wire.read();
-  }
-
-  if(readCard == "init done"){
-    b2_init = true;
-    return;
-  }
-  delay(500);
-  successRead = true;
-  readUIDCard();
-}
 
 boolean findID (String id) {  
   int count = EEPROM.read(0);
@@ -202,15 +220,6 @@ boolean findID (String id) {
   int readCount;
   for ( int i = 1; i < count; i = i+ readCount) {
     readCount = EEPROM_readAnything(i, read_userkey);
-    
-    /*
-    Serial.print("Reading ");
-    Serial.print(readCount);
-    Serial.print(", ");
-    Serial.print(read_userkey.Card);
-    Serial.print("/ from EEPROM. Start from ");
-    Serial.println(i);
-    */
 
     boolean correct = false;
     for(int j=0;j<11;j++){

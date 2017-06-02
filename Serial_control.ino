@@ -15,6 +15,7 @@ void printMenu() {
   Serial.println(F("6) Change Master Tag//not finished yet"));
   Serial.println(F("X) Delete All Tags /not implemented"));
   Serial.println(F("O) Open the door"));
+  Serial.println(F("T) Get time"));
   Serial.println();
 }
 
@@ -43,10 +44,15 @@ void get_Serial(){
 
       case 'C':
         lcd.backlight();
+        backightmode = 1;
       break;
-
+      case 'A':
+        backightmode=0;
+      break;
+      
       case 'c':
         lcd.noBacklight();
+        backightmode = 1;
       break;
       
       case 'X':
@@ -76,7 +82,24 @@ void get_Serial(){
         granted(3000);
         cooldown();
       break;
+
+      case'T':
+          showtime();
+      break;
+      
+      case 'R':
+        Serial1.begin(9600);
+      break;
     }
   }
+}
+
+void showtime(){
+  Time t = rtc.getTime();
+          char buf[50];
+          snprintf(buf, sizeof(buf), "%04d-%02d-%02d %02d:%02d:%02d",
+                  t.year, t.mon, t.date,
+                  t.hour, t.min, t.sec);
+          Serial.println(buf); 
 }
 
