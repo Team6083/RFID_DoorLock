@@ -21,78 +21,84 @@ void printMenu() {
 }
 
 void get_Serial() {
+  int index = 0;
   if (Serial.available() > 0) {
-    action = Serial.read();
+
+    while (Serial.available() > 0) {
+      delay(100);
+      action[index] = Serial.read();
+      index++;
+    }
     Serial.println();
     Serial.print("Serial reciving data....   ");
     Serial.println(action);
-  }
-  switch (action[0]) {
-    case '0':
-      masterMode = true;
-      cycleLeds();
-      MasterCardMode_addcard();
-      Serial.println(F("Scan a PICC to ADD"));
-      Serial.println(F("Enter 'E' to Exit"));
-      Serial.println(F("-----------------------------"));
-      break;
+    switch (action[0]) {
+      case '0':
+        masterMode = true;
+        cycleLeds();
+        MasterCardMode_addcard();
+        Serial.println(F("Scan a PICC to ADD"));
+        Serial.println(F("Enter 'E' to Exit"));
+        Serial.println(F("-----------------------------"));
+        break;
 
-    case '1':
-      dumpIDs();
-      Serial.println();
-      delay(1000);
-      printMenu();
-      break;
+      case '1':
+        dumpIDs();
+        Serial.println();
+        delay(1000);
+        printMenu();
+        break;
 
-    case 'C':
-      lcd.backlight();
-      backightmode = 1;
-      break;
-    case 'A':
-      backightmode = 0;
-      break;
+      case 'C':
+        lcd.backlight();
+        backightmode = 1;
+        break;
+      case 'A':
+        backightmode = 0;
+        break;
 
-    case 'c':
-      lcd.noBacklight();
-      backightmode = 1;
-      break;
+      case 'c':
+        lcd.noBacklight();
+        backightmode = 1;
+        break;
 
-    case 'X':
-      clearAllID();
-      printMenu();
-      break;
+      case 'X':
+        clearAllID();
+        printMenu();
+        break;
 
-    case 'E':
-      Serial.println("Exiting...");
-      tone(8, NOTE_A6, 500);
-      delay(1000);
-      cooldown();
-      break;
+      case 'E':
+        Serial.println("Exiting...");
+        tone(8, NOTE_A6, 500);
+        delay(1000);
+        cooldown();
+        break;
 
-    case '3':
-      masterMode = true;
-      cycleLeds();
-      MasterCardMode_removecard();
-      Serial.println(F("Scan a PICC to REMOVE"));
-      Serial.println(F("Enter 'E' to Exit"));
-      Serial.println(F("-----------------------------"));
-      break;
-    case'O':
-      lcd_clearLine(0);
-      lcd.setCursor(0, 0);
-      lcd.print("  INSIDE OPEN  ");
-      granted(3000);
-      cooldown();
-      break;
+      case '3':
+        masterMode = true;
+        cycleLeds();
+        MasterCardMode_removecard();
+        Serial.println(F("Scan a PICC to REMOVE"));
+        Serial.println(F("Enter 'E' to Exit"));
+        Serial.println(F("-----------------------------"));
+        break;
+      case'O':
+        lcd_clearLine(0);
+        lcd.setCursor(0, 0);
+        lcd.print("  INSIDE OPEN  ");
+        granted(3000);
+        cooldown();
+        break;
 
-    case'T':
-      showtime();
-      break;
+      case'T':
+        showtime();
+        break;
 
-    case 'S':
-      set_time();
-      break;
+      case 'S':
+        set_time();
+        break;
 
+    }
   }
 }
 
@@ -106,32 +112,20 @@ void showtime() {
 }
 
 void set_time() {
-  int y, m, d;
-  int h, mi, s;/*
-  Serial.println("Input year:");
-  while (Serial.available()==0)
-  y = Serial.parseInt();  //year
-
-  Serial.println("Input month:");
-  while (Serial.available()==0)
-  m = Serial.parseInt();  //month
-
-  Serial.println("Input day:");
-  while (Serial.available()==0)
-  d = Serial.parseInt();  //day
-
-
-  Serial.println("Input hour:");
-  while (Serial.available()==0)
-  h = Serial.parseInt();  //hour
-
-  Serial.println("Input min:");
-  while (Serial.available()==0)
-  mi = Serial.parseInt();  //min
-
-  Serial.println("Input sec:");
-  while (Serial.available()==0)
-  s = Serial.parseInt();  //sec*/
+  int data[6];
+  String temp(action);
+  temp = temp.substring(1, temp.length() - 1);
+  Serial.println(temp);
+  int data_index = 0;
+  for (int i = 0, prev = 0; i <= temp.length() && data_index < 6; i++) {
+    if (temp.charAt(i) == ',' || temp.charAt(i) == "," || temp.charAt(i) == ";" || temp.charAt(i) == ';') {
+      String sub = temp.substring(prev, i);
+      data[data_index] = sub.toInt();
+      data_index++;
+      prev = i + 1;
+    }
+  }
+  change_time(data[0],data[1],data[2],data[3],data[4],data[5],"MON");
 }
 
 void change_time(int year, int mon, int date, int hour, int min, int sec, int dow) {

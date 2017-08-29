@@ -1,9 +1,9 @@
-void board_2_Serial(){
+void board_2_Serial() {
   String temp = "";
   bool ifRead = false;
-  
-  while(Serial1.available() > 0){
-    if(ifRead==false){
+
+  while (Serial1.available() > 0) {
+    if (ifRead == false) {
       //Serial.println("Serial 1 reciving data....   ");
       delay(50);
     }
@@ -11,24 +11,24 @@ void board_2_Serial(){
     ifRead = true;
   }
 
-  if(ifRead){
+  if (ifRead) {
     /*Serial.print("[Serial 1] ");
-    Serial.println(temp); */
-    if(temp.charAt(0) == '#'){
-      readCard = temp.substring(1,12);
-      successRead=true;
+      Serial.println(temp); */
+    if (temp.charAt(0) == '#') {
+      readCard = temp.substring(1, 12);
+      successRead = true;
       readUIDCard();
     }
-    else if(temp.charAt(0) == '!'){
+    else if (temp.charAt(0) == '!') {
       String msg = temp.substring(1);
       Serial.println(msg);
     }
   }
-  
+
 }
 
-void control_board2(){
-  
+void control_board2() {
+
 }
 
 
@@ -39,9 +39,9 @@ void control_board2(){
 
 /////////////////////////////////// Recive from I2C ///////////////////////////////////
 
-void receiveEvent(int howMany){
+void receiveEvent(int howMany) {
   readCard = "";
-  while(Wire.available()){
+  while (Wire.available()) {
     readCard += (char)Wire.read();
   }
   delay(500);

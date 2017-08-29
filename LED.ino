@@ -16,7 +16,7 @@
 #endif
 
 
-void ledsetup(){
+void ledsetup() {
   pinMode(redLed, OUTPUT);
   pinMode(greenLed, OUTPUT);
   pinMode(blueLed, OUTPUT);
@@ -172,7 +172,7 @@ void cycleLeds() {
   digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
   digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
   delay(200);
-    digitalWrite(redLed, LED_OFF);   // Make sure red LED is off
+  digitalWrite(redLed, LED_OFF);   // Make sure red LED is off
   digitalWrite(greenLed, LED_ON);   // Make sure green LED is on
   digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
   delay(200);
@@ -195,14 +195,14 @@ void normalModeOn () {
   digitalWrite(relay, HIGH);    // Make sure Door is Locked
 }
 //////////////////////////////////////// Master Mode Led    /////////////////////////////////
-void MasterCardMode_addcard (){
+void MasterCardMode_addcard () {
   digitalWrite(blueLed, LED_ON);   // Blue LED ON and ready to read card
   digitalWrite(redLed, LED_OFF);  // Make sure Red LED is off
   digitalWrite(greenLed, LED_ON);  // Make sure Green LED is off
   digitalWrite(relay, HIGH);    // Make sure Door is Locked
 }
 
-void MasterCardMode_removecard (){
+void MasterCardMode_removecard () {
   digitalWrite(blueLed, LED_ON);   // Blue LED ON and ready to read card
   digitalWrite(redLed, LED_ON);  // Make sure Red LED is off
   digitalWrite(greenLed, LED_OFF);  // Make sure Green LED is off
