@@ -19,7 +19,15 @@ void board_2_Serial(){
       successRead=true;
       readUIDCard();
     }
+    else if(temp.charAt(0) == '!'){
+      String msg = temp.substring(1);
+      Serial.println(msg);
+    }
   }
+  
+}
+
+void control_board2(){
   
 }
 

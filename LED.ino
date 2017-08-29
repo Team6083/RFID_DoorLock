@@ -131,27 +131,28 @@ void greenBlink() {
 }
 
 void denied() {
-  tone(8, 523, 200);
+  tone(8, 800);
   digitalWrite(blueLed, LED_OFF);   // Make sure blue LED is off
   digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
   digitalWrite(greenLed, LED_OFF);  // Make sure green LED is off
   digitalWrite(relay, HIGH);    // Make sure Door is Locked
   delay(200);
-  noTone(8);
+  //noTone(8);
   digitalWrite(redLed, LED_ON);   // Make sure red LED is on
   delay(200);
-  tone(8, 523, 200);
+  //tone(8, 800, 200);
   digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
   delay(200);
-  noTone(8);
+  //noTone(8);
   digitalWrite(redLed, LED_ON);   // Make sure red LED is on
   delay(200);
-  tone(8, 523, 200);
+  //tone(8, 800, 200);
   digitalWrite(redLed, LED_OFF);  // Make sure red LED is off
   delay(200);
-  tone(8, 523, 1000);
+  //tone(8, 800, 1000);
   digitalWrite(redLed, LED_ON);   // Make sure red LED is on
   delay(200);
+  noTone(8);
   delay(3800);
 }
 

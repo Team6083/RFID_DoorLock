@@ -9,7 +9,6 @@ void init_lcd(){
     lcd.noBacklight(); // close backloght
     delay(250);
   }
-
   lcd.backlight();
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -27,34 +26,38 @@ void lcd_granted(){
 
 }
 
+void printMsg(){
+  if(display_index>1) display_index=0;
+  lcd_clearLine(0);
+  delay(100);
+  lcd.setCursor(0, 0);
+  lcd.print(LCD_Display[display_index]);
+  display_index++;
+}
+
 void printTime(){
-  Time t = rtc.getTime();
-  if(t.year == 2011){
+  lcd_clearLine(1);
+  current_time = rtc.getTime();
+  if(current_time.year == 2011){
     printTime();
     return;
   }
   lcd.setCursor(0, 1);
-  lcd.print(t.year);
-  lcd.print("-");
-  lcd.print(t.mon);
-  lcd.print("-");
-  lcd.print(t.date);
+  lcd.print(current_time.year);
+  lcd.print("/");
+  lcd.print(current_time.mon);
+  lcd.print("/");
+  lcd.print(current_time.date);
   lcd.print(" ");
-  if(t.hour<10){
+  if(current_time.hour<10){
     lcd.print("0");
   }
-  lcd.print(t.hour);
+  lcd.print(current_time.hour);
   lcd.print(":");
-  if(t.min<10){
+  if(current_time.min<10){
     lcd.print("0");
   }
-  lcd.print(t.min);
-  /*if(t.hour>12){
-    lcd.print("PM");
-  }
-  else{
-    lcd.print("AM");
-  }*/
+  lcd.print(current_time.min);
 }
 
 void backlight_control(){
